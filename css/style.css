@@ -1,0 +1,117 @@
+/* main css */
+
+/* reset */
+
+*{
+	margin: 0px;
+	padding: 0px;
+	border: none;
+	outline: none;
+	font-size: 100%;
+}
+
+/* global styles */
+
+body {
+	-webkit-font-smoothing: antialiased;
+	-moz-font-smoothing: antialiased;
+	font-family: sans-serif;
+}
+
+a {
+	text-decoration: none;
+	cursor: pointer;
+}
+
+a:hover,
+a:focus,
+a:visited {
+	text-decoration: none;
+	outline: none;
+}
+
+::-webkit-input-placeholder {color: inherit;}
+::-moz-input-placeholder {color: inherit;}
+::-ms-input-placeholder {color: inherit;}
+
+/* cookie box */
+
+#cookie-box {
+	z-index: 100000;
+	position: fixed;
+	bottom: 15px;
+	right: 15px;
+	background: #222;
+	border: none;
+	padding: 10px;
+}
+
+#cookie-box p {
+	font-size: 12px;
+	color: #fff;
+	margin: 0;
+}
+
+#cookie-box p a {
+	font-size: 14px;
+	color: #f2c500;
+}
+
+#cookie-box button {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	width: 30px;
+	height: 30px;
+	text-align: center;
+	line-height: 25px;
+	background: transparent;
+	border: none;
+}
+
+#cookie-ok {
+	cursor: pointer;
+	display: inline-block;
+	padding: 5px 10px;
+	border: none;
+	background: #fff;
+	color: #000;
+	border-radius: 4px;
+}
+
+#cookie-ok:hover {
+	background: #f2c500;
+	color: #333;
+}
+
+/* scroll to top */
+
+.scroll-to-top {
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	width: 50px;
+	height: 50px;
+	color: #fff;
+	font-size: 40px;
+	line-height: 50px;
+	text-align: center;
+	z-index: 100;
+	cursor: pointer;
+	background: #222;
+	border-radius: 50%;
+	-webkit-transition: all 300ms ease;
+	-moz-transition: all 300ms ease;
+	-ms-transition: all 300ms ease;
+	-o-transition: all 300ms ease;
+	transition: all 300ms ease;		
+}
+
+.scroll-to-top:hover {
+	background: #eee;
+	color: #333;
+}
+
+/* responsive */
+
+/* EOF */

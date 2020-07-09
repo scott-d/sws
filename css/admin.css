@@ -1,0 +1,67 @@
+/* admin styles */
+
+ul#admin-tabs {
+	display: flex;
+	align-items: stretch;
+	justify-content: space-between;
+	width: 100%;
+	background: #444;
+	margin: 0;
+	padding: 0;
+}
+
+ul#admin-tabs li {
+	display: block;
+	flex: 0 1 auto;
+	list-style-type: none;
+	text-align: center;
+	width: 100%;
+	height: 48px;
+	color: #eee;
+	padding-top: 10px;
+	transition: .5s;
+}
+
+ul#admin-tabs li:hover {
+	background: #555;
+	color: #fff;
+}
+
+ul#admin-tabs li i {
+	font-size: 28px;
+}
+
+.splitter {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+}
+
+#separator {
+    cursor: col-resize;
+    background-color: #aaa;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='30'><path d='M2 0 v30 M5 0 v30 M8 0 v30' fill='none' stroke='black'/></svg>");
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 10px;
+    height: 100vh;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#admin-panel {
+    background-color: #333;
+    width: 20%;
+    height: 100vh;
+    min-width: 10px;
+}
+
+#site-wrapper {
+    width: 80%;
+    height: 100vh;
+    min-width: 10px;
+    overflow: auto;
+}
+
+/* EOF */
