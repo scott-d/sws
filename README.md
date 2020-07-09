@@ -1,2 +1,2 @@
-# website
+# sws
 Simple Website System
