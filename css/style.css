@@ -2,7 +2,7 @@
 
 /* reset */
 
-*{
+* {
 	margin: 0px;
 	padding: 0px;
 	border: none;
@@ -94,7 +94,7 @@ a:visited {
 	height: 50px;
 	color: #fff;
 	font-size: 40px;
-	line-height: 50px;
+	line-height: 52px;
 	text-align: center;
 	z-index: 100;
 	cursor: pointer;

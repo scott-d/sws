@@ -9,17 +9,203 @@
 //     ▄█    ███  ███ ▄█▄ ███     ▄█    ███  
 //   ▄████████▀    ▀███▀███▀    ▄████████▀   
 
-// definitions
+session_start();
+error_reporting(E_ALL);
 
+// definitions & vars
+
+define("_SWS", "https://sws.xayr.in/api");
 define("_SALT", "(((Emily)))");
 define("_HASH", hash("sha256", _SALT));
 define("_SANDBOX", FALSE);
 define("_USEDB", FALSE);
+define("_MARIA", FALSE);
+define("_DSN", [
+	"name" => "",
+	"user" => "",
+	"pass" => "",
+	"char" => "utf8mb4"
+]);
 define("_FROZEN", FALSE);
 define("_CACHE", FALSE);
+define("_DOMAIN", $_SERVER["SERVER_NAME"]);
+define("_EMAIL", "info@" . _DOMAIN);
 
-define("_DOMAIN", "");
-define("_EMAIL", "");
+$mimes = [
+	"js" => "application/javascript",
+	"json" => "application/json",
+	"ico" => "image/x-icon",
+	"svg" => "image/svg+xml",
+	"jpg" => "image/jpeg",
+	"png" => "image/png",
+	"gif" => "image/gif",
+	"webp" => "image/webp",
+	"css" => "text/css",
+	"txt" => "text/plain",
+	"html" => "text/html",
+	"ttf" => "font/truetype",
+	"otf" => "font/opentype",
+	"eot" => "application/vnd.ms-fontobject",
+	"woff" => "application/font-woff",
+	"woff2" => "font/woff2",
+	"pdf" => "application/pdf"
+];
+
+$values = [];
+
+$fields = [
+	"name",
+	"email_address",
+	"phone_number",
+	"text"
+];
+
+$http = "200";
+
+//     ▄████████  ███    █▄   ███▄▄▄▄▄     ▄████████     ▄████████  
+//    ███    ███  ███    ███  ███▀▀▀▀██▄  ███    ███    ███    ███  
+//    ███    █▀   ███    ███  ███    ███  ███    █▀     ███    █▀   
+//   ▄███▄▄▄      ███    ███  ███    ███  ███           ███         
+//  ▀▀███▀▀▀      ███    ███  ███    ███  ███         ▀███████████  
+//    ███         ███    ███  ███    ███  ███    █▄            ███  
+//    ███         ███    ███  ███    ███  ███    ███     ▄█    ███  
+//    ███         ████████▀    ▀█    █▀   ████████▀    ▄████████▀   
+
+function _out($status, $mime, $content) {
+	global $mimes;
+	switch ($status) {
+		case "200":
+			header("Status: 200 OK", TRUE, 200);
+			break;
+		case "404":
+			header("Status: 404 Not Found", TRUE, 404);
+			break;
+		case "500":
+			header("Status: 500 Server Error", TRUE, 500);
+			break;
+	}
+
+	header("Content-Type: " . $mimes[$mime]);
+	header("Content-Length: " . strlen($content));
+	echo $content;
+}
+
+function _get($sql) {
+	return (isset($values[$field])) ? $values[$field] : FALSE;
+}
+
+function _set($field, $value) {
+	$values[$field] = $value;
+}
+
+function _four04() {
+	global $http;
+	$file = "./html/404.html";
+	$html = "<html><body><h1>404</h1><p>Page not found :(</p></body></html>";
+	$http = "404";
+
+	return (_exists($file)) ? file_get_contents($file) : $html;
+}
+
+function _exists($filename) {
+	return file_exists($filename);
+}
+
+function _key() {
+	return hash("sha256", $_SERVER['HTTP_HOST'] . "-" . _SALT);
+}
+
+function _ispaypal() {
+	return (isset($_POST["verify_sign"]) && isset($_POST["txn_id"])) ? TRUE : FALSE;
+}
+
+function _isform() {
+	return (isset($_POST["key"]) && $_POST["key"] == _key()) ? TRUE : FALSE;
+}
+
+function _cclear() {
+	if (isset($_GET["cc"]) && ($_GET["cc"] === "yes")) {
+		$files = glob("./cache/*.html");
+
+		if (count($files) > 0) {
+			foreach ($files as $file) {
+				unlink($file);
+			}
+		}
+
+		return TRUE;
+	}
+}
+
+function _isapi() {
+	$result = FALSE;
+	if (isset($_POST["api"])) {
+		$result = $_POST["api"];
+	}
+	return $result;
+}
+
+function _islogin() {
+	return isset($_GET["admin"]);
+}
+
+function _dologin() {
+	$result = FALSE;
+	if (isset($_POST["hash"])) {
+		if ($_POST["hash"] === _HASH) {
+			if (isset($_POST["user"]) && isset($_POST["pass"])) {
+				if ($_POST["user"] === "scott") {
+					if ($_POST["pass"] === "100872") {
+						_setsess(TRUE, $_POST["user"]);
+						$result = TRUE;
+					}
+				}
+			}
+		}
+	}
+	return $result;
+}
+
+function _dologout() {
+	return isset($_GET["logout"]);
+}
+
+function _setsess($valid, $user) {
+	$_SESSION["valid"] = $valid;
+	$_SESSION["time"] = time();
+	$_SESSION["user"] = $user;
+}
+
+function _getsess() {
+	return [
+		"valid" => $_SESSION["valid"],
+		"time" => $_SESSION["time"],
+		"user" => $_SESSION["user"]
+	];
+}
+
+function _curl($url, $post) {
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_POST, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+
+	$response = curl_exec($ch);
+	curl_close($ch);
+
+	return $response;
+}
+
+function _in() {
+	$result = FALSE;
+	if (isset($_SESSION["valid"])) {
+		$result = $_SESSION["valid"];
+	}
+	return $result;
+}
 
 //  ████████▄   ▀█████████▄   
 //  ███   ▀███    ███    ███  
@@ -34,7 +220,22 @@ class D {
 	public static $db;
 
 	public static function setup() {
-		self::$db = new PDO("sqlite:./../database.db");
+		if (_MARIA) {
+			$dsn = "mysql:host=127.0.0.1;dbname=" . _DSN["name"] . ";charset=" . _DSN["char"] . ";port=3306";
+			try {
+				$pdo = new PDO($dsn, _DSN["user"], _DSN["pass"], [
+					PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+					PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+					PDO::ATTR_EMULATE_PREPARES => FALSE,
+				]);
+			}
+			catch (PDOException $e) {
+				throw new PDOException($e->getMessage(), (int)$e->getCode());
+			}
+		}
+		else {
+			self::$db = new PDO("sqlite:./../database.db");
+		}
 	}
 
 	public static function dispense($table) {
@@ -200,18 +401,17 @@ if (_USEDB) {
 	D::setup();
 }
 
-//     ▄████████     ▄███████▄   ▄█   
-//    ███    ███    ███    ███  ███   
-//    ███    ███    ███    ███  ███▌  
-//    ███    ███    ███    ███  ███▌  
-//  ▀███████████  ▀█████████▀   ███▌  
-//    ███    ███    ███         ███   
-//    ███    ███    ███         ███   
-//    ███    █▀    ▄████▀       █▀    
+//   ▄█   ███▄▄▄▄▄        ███             ▄████████     ▄███████▄   ▄█   
+//  ███   ███▀▀▀▀██▄  ▀█████████▄        ███    ███    ███    ███  ███   
+//  ███▌  ███    ███     ▀███▀▀██        ███    ███    ███    ███  ███▌  
+//  ███▌  ███    ███      ███   ▀        ███    ███    ███    ███  ███▌  
+//  ███▌  ███    ███      ███          ▀███████████  ▀█████████▀   ███▌  
+//  ███   ███    ███      ███            ███    ███    ███         ███   
+//  ███   ███    ███      ███            ███    ███    ███         ███   
+//  █▀     ▀█    █▀      ▄████▀          ███    █▀    ▄████▀       █▀      
 
-// content api
-
-function _api($request, $paypal = false) {
+function _int($request, $paypal = FALSE) {
+	global $mimes;
 	$default = [
 		"domain" => $_SERVER["HTTP_HOST"],
 		"path" => $_GET["path"],
@@ -222,156 +422,73 @@ function _api($request, $paypal = false) {
 
 	$fields = array_merge($default, $request);
 
-	$query = ($paypal) ? "?paypal=yes" : "";
-	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, _API . $query);
-	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
-	curl_setopt($ch, CURLOPT_POST, 1);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, ["data" => json_encode($fields)]);
-	
-	$response = curl_exec($ch);
-	curl_close($ch);
+	$response = _curl(
+		_SWS . ($paypal) ? "?paypal=yes" : "",
+		["data" => json_encode($fields)]
+	);
 
-	$json = json_decode($response);
+	try {
+    	$json = json_decode($response, TRUE, $depth = 512, JSON_THROW_ON_ERROR);
 
-	if (!$paypal) {
-		// not paypal
-		$content = base64_decode($json->content);
-	   
-		if ($json->debug == "0") {
-			// not debug
-			switch ($json->status) {
-				case "200":
-					header("Status: 200 OK", true, 200);
-					break;
-				case "404":
-					header("Status: 404 Not Found", true, 404);
-					break;
-				case "500":
-					header("Status: 500 Server Error", true, 500);
-					break;
+		if (!$paypal) {
+			// not paypal
+			$content = base64_decode($json->content);
+
+			$data = [
+				"status" => $json->status,
+				"mime" => $json->mime,
+				"content" => $content,
+				"raw" => ""
+			];
+
+			if ($json->debug) {
+				$data["raw"] = $response;
 			}
 
-			return $content;
+			return json_encode($data);
 		}
-		else {
-			// debug output
-			return "status: {$json->status}\nmime: {$json->mime}\ncontent:\n\n{$content}";
-		}
+
+	}
+	catch (Exception $e) {
+		return json_encode([
+			"status" => "json error",
+			"mime" => $mimes["json"],
+			"content" => "exception: " . $e->getMessage() . " || message: " . json_last_error(),
+			"raw" => $response
+		]);
+	}
+
+}
+
+//     ▄████████  ▀████    ▐████▀      ███             ▄████████     ▄███████▄   ▄█   
+//    ███    ███    ███▌   ████▀   ▀█████████▄        ███    ███    ███    ███  ███   
+//    ███    █▀      ███  ▐███        ▀███▀▀██        ███    ███    ███    ███  ███▌  
+//   ▄███▄▄▄         ▀███▄███▀         ███   ▀        ███    ███    ███    ███  ███▌  
+//  ▀▀███▀▀▀         ████▀██▄          ███          ▀███████████  ▀█████████▀   ███▌  
+//    ███    █▄     ▐███  ▀███         ███            ███    ███    ███         ███   
+//    ███    ███   ▄███     ███▄       ███            ███    ███    ███         ███   
+//    ██████████  ████       ███▄     ▄████▀          ███    █▀    ▄████▀       █▀      
+
+function _ext($api, $params) {
+	$apis = [
+		"" => ""
+	];
+
+	if (in_array($api, $apis)) {
+		$response = _curl(
+			$apis[$api],
+			(is_array($params) ? $params : json_decode($params, TRUE))
+		);
+
+		return $response;
+	}
+	else {
+		return json_encode([
+			"status" => "no such api"
+		]);
 	}
 }
 
-//   ▄█    █▄      ▄████████     ▄████████     ▄████████  
-//  ███    ███    ███    ███    ███    ███    ███    ███  
-//  ███    ███    ███    ███    ███    ███    ███    █▀   
-//  ███    ███    ███    ███   ▄███▄▄▄▄██▀    ███         
-//  ███    ███  ▀███████████  ▀▀███▀▀▀▀▀    ▀███████████  
-//  ▀██    ███    ███    ███  ▀███████████           ███  
-//   ▀██  ██▀     ███    ███    ███    ███     ▄█    ███  
-//    ▀████▀      ███    █▀     ███    ███   ▄████████▀   
-
-$GLOBALS["code"] = "200";
-
-$mimes = [
-	"js" => "application/javascript",
-	"ico" => "image/x-icon",
-	"svg" => "image/svg+xml",
-	"jpg" => "image/jpeg",
-	"png" => "image/png",
-	"gif" => "image/gif",
-	"css" => "text/css",
-	"txt" => "text/plain",
-	"html" => "text/html",
-	"ttf" => "font/truetype",
-	"otf" => "font/opentype",
-	"eot" => "application/vnd.ms-fontobject",
-	"woff" => "application/font-woff",
-	"woff2" => "font/woff2"
-];
-
-$values = [];
-
-$fields = [
-	"name",
-	"email_address",
-	"phone_number",
-	"text"
-];
-
-//     ▄████████  ███    █▄   ███▄▄▄▄▄     ▄████████     ▄████████  
-//    ███    ███  ███    ███  ███▀▀▀▀██▄  ███    ███    ███    ███  
-//    ███    █▀   ███    ███  ███    ███  ███    █▀     ███    █▀   
-//   ▄███▄▄▄      ███    ███  ███    ███  ███           ███         
-//  ▀▀███▀▀▀      ███    ███  ███    ███  ███         ▀███████████  
-//    ███         ███    ███  ███    ███  ███    █▄            ███  
-//    ███         ███    ███  ███    ███  ███    ███     ▄█    ███  
-//    ███         ████████▀    ▀█    █▀   ████████▀    ▄████████▀   
-
-function _out($status, $mime, $content) {
-	switch ($status) {
-		case "200":
-			header("Status: 200 OK", TRUE, 200);
-			break;
-		case "404":
-			header("Status: 404 Not Found", TRUE, 404);
-			break;
-		case "500":
-			header("Status: 500 Server Error", TRUE, 500);
-			break;
-	}
-
-	header("Content-Type: " . $mimes[$mime]);
-	header("Content-Length: " . strlen($content));
-	echo $content;
-}
-
-function _get($sql) {
-	return (isset($values[$field])) ? $values[$field] : FALSE;
-}
-
-function _set($field, $value) {
-	$values[$field] = $value;
-}
-
-function _four04() {
-	$GLOBALS["code"] = "404";
-	$file = "./html/404.html";
-	$html = "<html><body><h1>404</h1><p>Page not found :(</p></body></html>";
-
-	return (_exists($file)) ? file_get_contents($file) : $html;
-}
-
-function _exists($filename) {
-	return file_exists($filename);
-}
-
-function _key() {
-	return hash("sha256", $_SERVER['HTTP_HOST'] . "-" . _SALT);
-}
-
-function _ispaypal() {
-	return (isset($_POST["verify_sign"]) && isset($_POST["txn_id"])) ? TRUE : FALSE;
-}
-
-function _isform() {
-	return (isset($_POST["key"]) && $_POST["key"] == _key()) ? TRUE : FALSE;
-}
-
-function _cc() {
-	if (isset($_GET["cc"]) && ($_GET["cc"] === "yes")) {
-		$files = glob("./cache/*.html");
-
-		if (count($files) > 0) {
-			foreach ($files as $file) {
-				unlink($file);
-			}
-		}
-
-		return TRUE;
-	}
-}
 
 //     ███        ▄█    █▄       ▄████████   ▄▄▄▄███▄▄▄▄      ▄████████ 
 // ▀█████████▄   ███    ███     ███    ███ ▄██▀▀▀███▀▀▀██▄   ███    ███ 
@@ -388,6 +505,7 @@ function _theme($params, $html = "") {
 
 	if (isset($params["url"])) {
 		$page = $params["url"];
+		$params["page"] = substr($page, 1);
 		$filename = "{$root}/html/{$page}.html";
 
 		if (_exists($filename)) {
@@ -432,7 +550,7 @@ function _theme($params, $html = "") {
 				case "title": {
 					$html = str_replace(
 						$tags[$i],
-						ucfirst(substr($page, 1)),
+						ucfirst($params["page"]),
 						$html
 					);
 
@@ -483,25 +601,25 @@ function _theme($params, $html = "") {
 
 					$file = "{$root}/html/_nav.html";
 					$nav = (_exists($file)) ? file_get_contents($file) : "";
-					if ($nav != "") {
+					if ($nav) {
 					    $params["files"][] = $file;
 					}
 
 					$file = "{$root}/html/_n1p.html";
 					$n1p = (_exists($file)) ? file_get_contents($file) : "";
-					if ($n1p != "") {
+					if ($n1p) {
 					    $params["files"][] = $file;
 					}
 
 					$file = "{$root}/html/_n1c.html";
 					$n1c = (_exists($file)) ? file_get_contents($file) : "";
-					if ($n1c != "") {
+					if ($n1c) {
 					    $params["files"][] = $file;
 					}
 
 					$file = "{$root}/html/_n2c.html";
 					$n2c = (_exists($file)) ? file_get_contents($file) : "";
-					if ($n2c != "") {
+					if ($n2c) {
 					    $params["files"][] = $file;
 					}
 
@@ -682,6 +800,18 @@ function _theme($params, $html = "") {
 
 					break;
 				}
+				case "scroll-top": {
+					$value = "\t<div class=\"scroll-to-top scroll-to-target\" data-target=\"html\"><span class=\"fa fa-arrow-circle-o-up\"></span></div>\n";
+					$html = str_replace($tags[$i], $value, $html);
+
+					break;
+				}
+				case "cookie-box": {
+					$value = "\t<!-- cookie box -->\n";
+					$html = str_replace($tags[$i], $value, $html);
+
+					break;
+				}
 			}
 		}
 	}
@@ -700,6 +830,7 @@ function _theme($params, $html = "") {
 // get/post request router
 
 function _router($get, $post) {
+	global $http;
 	if (!empty($post)) {
 		// post request
 		$data = (object)$post;
@@ -710,27 +841,42 @@ function _router($get, $post) {
 		$data = (object)$get;
 	}
 
-	$url = (ltrim($data->path, "/")) ?: "index";
-	$parts = explode("/", $url);
-	$parsed = parse_url($url);
-	$info = pathinfo($parsed["path"]);
-	$ext = $info["extension"];
-	$file = "./cache/" . $info["filename"] . ".html";
+	if (property_exists($data, "path")) {
+		$url = (ltrim($data->path, "/")) ?: "index";
+		$parts = explode("/", $url);
+		$parsed = parse_url($url);
+		$info = pathinfo($parsed["path"]);
+		$ext = (isset($info["extension"])) ? $info["extension"] : "";
+		$file = $info["filename"] . (($ext) ? $ext : ".html");
+	}
+	else {
+		$url = "index";
+		$file = "index.html";
+	}
 
-	if (_exists($file) && _CACHE) {
-		$html = file_get_contents($file);
+	$cached = "./cache/" . $file;
+
+	if (_exists($cached) && _CACHE) {
+		$html = file_get_contents($cached);
 	}
 	else {
 		$html = _theme([
-			"page" => $info["filename"] . $ext,
+			"page" => $file,
 			"url" => "/" . $url
 		]);
-		if (($GLOBALS["code"] == 200) && _CACHE) {
+		if (($http = "200") && _CACHE) {
 			file_put_contents($file, $html);
 		}
 	}
-	
-	_out($GLOBALS["code"], "text/html", $html);
+
+	if (_in()) {
+		$js = "\t<script src=\"js/admin.js\" id=\"" . _HASH . "\"></script>\n</body>";
+		$html = str_replace("</body>", $js, $html);
+		$css = "\t<link href=\"css/admin.css\" rel=\"stylesheet\">\n</head>";
+		$html = str_replace("</head>", $css, $html);
+	}
+
+	_out($http, "html", $html);
 }
 
 //     ▄██████▄    ▄██████▄   
@@ -745,6 +891,7 @@ function _router($get, $post) {
 // do stuff
 
 if (_ispaypal()) {
+	// this is a paypal sws request
 	$paypal_url = (_SANDBOX) ? "https://ipnpb.sandbox.paypal.com/cgi-bin/webscr" : "https://ipnpb.paypal.com/cgi-bin/webscr";
 	
 	if (!count($_POST)) {
@@ -767,7 +914,7 @@ if (_ispaypal()) {
 		}
 	}
 	
-	// get txn_id and custom_id and set status as "processing"
+	// todo: get txn_id and custom_id and set status as "processing"
 	
 	$req = "cmd=_notify-validate";
 	$get_magic_quotes_exists = false;
@@ -823,14 +970,14 @@ if (_ispaypal()) {
 	curl_close($ch);
 	
 	if ($res == "VERIFIED") {
-		// payment verified ok
+		// todo: payment verified ok
 	}
 	else {
-		// problem with payment
+		// todo: problem with payment
 	}
 }
 else if (_isform()) {
-	// contact form post
+	// this is a contact form post
 	$message = "Website Form Submission from " . _DOMAIN . "\n\n";
 
 	foreach ($fields as $field) {
@@ -849,12 +996,29 @@ else if (_isform()) {
 
 	header("Location: /thanks?{$ok}");
 }
-elseif (_cc()) {
-	// clear cache request
+elseif (_cclear()) {
+	// this is a clear cache request
 	header("Location: /?done");
 }
+elseif (_isapi()) {
+	// this is an api request
+}
+elseif (_islogin()) {
+	// this is a login screen request
+	$html = "<!DOCTYPE html><html lang=\"en\"><body><form method=\"post\" action=\"/\"><input type=\"text\" name=\"user\" placeholder=\"username\"><br><input type=\"password\" name=\"pass\" placeholder=\"password\"><br><input type=\"hidden\" name=\"hash\" value=\"" . _HASH . "\"><input type=\"submit\" name=\"submit\" value=\"log in\"></body></html>";
+	_out("200", "html", $html);
+}
+elseif (_dologin()) {
+	// this is a login request
+	header("Location: /");
+}
+elseif (_dologout()) {
+	// this is a logout request
+	session_destroy();
+	header("Location: /");
+}
 else {
-	// normal web request
+	// this is a normal web request
 	_router($_GET, $_POST);
 }
 
